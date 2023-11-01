@@ -1,5 +1,4 @@
 import React, { useEffect, useReducer } from "react";
-
 import Header from "./components/Header";
 import Main from "./components/Main";
 import Loader from "./components/Loader";
@@ -9,6 +8,9 @@ import Question from "./components/Question";
 import NextButton from "./components/NextButton";
 import Progress from "./components/Progress";
 import FinishedScreen from "./components/FinishedScreen";
+import Timer from "./components/Timer";
+import Footer from "./components/Footer";
+const SECS_PER_QUESTION = 30;
 const initialState = {
   questions: [],
   //loading, error,ready,active,finished states in the application can be in
@@ -17,6 +19,7 @@ const initialState = {
   answer: null,
   points: 0,
   highScore: 0,
+  secondsRemaining: null,
 };
 
 function reducer(state, action) {
@@ -36,6 +39,13 @@ function reducer(state, action) {
       return {
         ...state,
         status: "active",
+        secondsRemaining: state.questions.length * SECS_PER_QUESTION,
+      };
+    case "tick":
+      return {
+        ...state,
+        secondsRemaining: state.secondsRemaining - 1,
+        status: state.secondsRemaining === 0 ? "finished" : state.status,
       };
     case "newAnswer":
       const currentQuestion = state.questions[state.index];
@@ -73,8 +83,10 @@ function reducer(state, action) {
 }
 
 export default function App() {
-  const [{ questions, status, index, answer, points, highScore }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { secondsRemaining, questions, status, index, answer, points, highScore },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
   const totalPoints = questions.reduce((accumulator, currentValue) => {
@@ -123,12 +135,18 @@ export default function App() {
               dispatch={dispatch}
               answer={answer}
             ></Question>
-            <NextButton
-              index={index}
-              numQuestions={numQuestions}
-              dispatch={dispatch}
-              answer={answer}
-            ></NextButton>
+            <Footer>
+              <Timer
+                dispatch={dispatch}
+                secondsRemaining={secondsRemaining}
+              ></Timer>
+              <NextButton
+                index={index}
+                numQuestions={numQuestions}
+                dispatch={dispatch}
+                answer={answer}
+              ></NextButton>
+            </Footer>
           </>
         )}
 
